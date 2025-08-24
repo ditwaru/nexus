@@ -12,7 +12,7 @@
     "@aws-sdk/client-dynamodb": "^3.873.0",
     "@aws-sdk/lib-dynamodb": "^3.873.0",
     "@dotenvx/dotenvx": "^1.49.0",
-    "ditwaru-aws-helpers": "^1.0.0",
+    "ditwaru-aws-helpers": "^1.0.2",
     "next": "15.5.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"

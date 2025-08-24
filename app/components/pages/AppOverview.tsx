@@ -97,6 +97,14 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
         return "bg-green-100 text-green-800";
       case "content":
         return "bg-purple-100 text-purple-800";
+      case "services":
+        return "bg-indigo-100 text-indigo-800";
+      case "baseline":
+        return "bg-orange-100 text-orange-800";
+      case "addOns":
+        return "bg-yellow-100 text-yellow-800";
+      case "contact":
+        return "bg-pink-100 text-pink-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -110,8 +118,16 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
         return "Story";
       case "content":
         return "Content";
+      case "services":
+        return "Services";
+      case "baseline":
+        return "Baseline";
+      case "addOns":
+        return "Add-Ons";
+      case "contact":
+        return "Contact";
       default:
-        return type;
+        return type.charAt(0).toUpperCase() + type.slice(1);
     }
   };
 
@@ -292,26 +308,38 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
                         <span className="text-sm font-medium text-gray-700">{section.title}</span>
                       </div>
                       <div className="text-sm text-gray-600">
-                        {Array.isArray(section.text) ? (
-                          <div>
-                            {section.text.slice(0, 2).map((paragraph, i) => (
-                              <p key={i} className="mb-1">
-                                {paragraph.length > 100
-                                  ? `${paragraph.substring(0, 100)}...`
-                                  : paragraph}
-                              </p>
-                            ))}
-                            {section.text.length > 2 && (
-                              <p className="text-gray-500 italic">
-                                +{section.text.length - 2} more paragraphs
-                              </p>
-                            )}
-                          </div>
+                        {section.text ? (
+                          Array.isArray(section.text) ? (
+                            <div>
+                              {section.text.slice(0, 2).map((paragraph, i) => (
+                                <p key={i} className="mb-1">
+                                  {paragraph.length > 100
+                                    ? `${paragraph.substring(0, 100)}...`
+                                    : paragraph}
+                                </p>
+                              ))}
+                              {section.text.length > 2 && (
+                                <p className="text-gray-500 italic">
+                                  +{section.text.length - 2} more paragraphs
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <p>
+                              {section.text.length > 100
+                                ? `${section.text.substring(0, 100)}...`
+                                : section.text}
+                            </p>
+                          )
                         ) : (
-                          <p>
-                            {section.text.length > 100
-                              ? `${section.text.substring(0, 100)}...`
-                              : section.text}
+                          <p className="text-gray-500 italic">
+                            {section.type === "services" && "Service packages configured"}
+                            {section.type === "baseline" && "Baseline inclusions configured"}
+                            {section.type === "addOns" && "Add-on items configured"}
+                            {section.type === "contact" && "Contact information configured"}
+                            {!["services", "baseline", "addOns", "contact"].includes(
+                              section.type
+                            ) && "No content preview available"}
                           </p>
                         )}
                       </div>
