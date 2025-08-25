@@ -14,11 +14,6 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
   const [newPageName, setNewPageName] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  // Debug: Log the data being received
-  console.log("AppOverview component received data:", data);
-  console.log("Data type:", typeof data);
-  console.log("Data length:", Array.isArray(data) ? data.length : "Not an array");
-
   const handleAddPage = async () => {
     if (!newPageName.trim()) return;
 

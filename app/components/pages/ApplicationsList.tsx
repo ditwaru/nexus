@@ -73,13 +73,6 @@ export default function ApplicationsList({ applications }: ApplicationsListProps
                 </Link>
               ))}
             </div>
-
-            {/* Add New Application Button */}
-            <div className="mt-8 text-center">
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors">
-                + Add New Application
-              </button>
-            </div>
           </>
         )}
       </div>
