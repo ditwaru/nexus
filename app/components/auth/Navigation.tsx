@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "./AuthProvider";
+import Image from "next/image";
 
 export default function Navigation() {
   const { user, signOut } = useAuth();
@@ -17,10 +18,12 @@ export default function Navigation() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 {user.picture && (
-                  <img
-                    className="h-8 w-8 rounded-full"
+                  <Image
+                    className="rounded-full"
                     src={user.picture}
                     alt={user.name || user.email || "User"}
+                    width={32}
+                    height={32}
                   />
                 )}
                 <div className="text-sm">

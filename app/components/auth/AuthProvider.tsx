@@ -1,9 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import {
   getCognitoOAuthUrl,
-  exchangeCodeForTokens,
   refreshTokens,
   revokeToken,
   getUserInfoFromToken,
@@ -18,7 +17,6 @@ interface AuthContextType {
   isLoading: boolean;
   signInWithSSO: () => void;
   signOut: () => void;
-  refreshUserToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,83 +26,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check auth status on mount
-  useEffect(() => {
-    checkAuthStatus();
+  const clearTokens = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("id_token");
+    localStorage.removeItem("refresh_token");
+    setIsAuthenticated(false);
+    setUser(null);
+    setIsLoading(false);
+  };
 
-    // Also check when window regains focus (useful after OAuth redirect)
-    const handleFocus = () => {
-      checkAuthStatus();
-    };
+  const refreshUserToken = async (): Promise<boolean> => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (!refreshToken) return false;
 
-    // Listen for custom auth events (when tokens are added/removed)
-    const handleAuthEvent = () => {
-      // Small delay to ensure the change is complete
-      setTimeout(checkAuthStatus, 100);
-    };
+    try {
+      const newTokens = await refreshTokens(
+        process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
+        process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
+        refreshToken
+      );
 
-    // Poll for tokens after redirects (useful for OAuth flows)
-    let pollInterval: NodeJS.Timeout;
-    const startPolling = () => {
-      pollInterval = setInterval(() => {
-        const hasTokens = localStorage.getItem("access_token") && localStorage.getItem("id_token");
-        if (hasTokens && !isAuthenticated) {
-          checkAuthStatus();
-          clearInterval(pollInterval);
-        }
-      }, 500); // Check every 500ms
-    };
+      localStorage.setItem("access_token", newTokens.access_token);
+      localStorage.setItem("id_token", newTokens.id_token);
 
-    // Start polling if we're not authenticated
-    if (!isAuthenticated) {
-      startPolling();
+      const userInfo = getUserInfoFromToken(newTokens.id_token);
+      setUser({
+        id: userInfo.sub,
+        email: userInfo.email,
+        name: userInfo.name,
+        given_name: userInfo.given_name,
+        family_name: userInfo.family_name,
+        picture: userInfo.picture,
+      });
+
+      setIsAuthenticated(true);
+      return true;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      return false;
+    }
+  };
+
+  const checkAuthStatus = useCallback(async () => {
+    const accessToken = localStorage.getItem("access_token");
+    const idToken = localStorage.getItem("id_token");
+
+    if (!accessToken || !idToken) {
+      clearTokens();
+      return;
     }
 
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("auth-tokens-stored", handleAuthEvent);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("auth-tokens-stored", handleAuthEvent);
-      if (pollInterval) {
-        clearInterval(pollInterval);
+    if (isTokenExpired(accessToken) || isTokenExpired(idToken)) {
+      const refreshSuccess = await refreshUserToken();
+      if (!refreshSuccess) {
+        clearTokens();
       }
-    };
-  }, [isAuthenticated]);
+      return;
+    }
 
-  const checkAuthStatus = async () => {
     try {
-      const accessToken = localStorage.getItem("access_token");
-      const idToken = localStorage.getItem("id_token");
-
-      if (!accessToken || !idToken) {
-        setIsAuthenticated(false);
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-
-      // Check if tokens are expired
-      if (isTokenExpired(accessToken) || isTokenExpired(idToken)) {
-        const refreshToken = localStorage.getItem("refresh_token");
-        if (refreshToken) {
-          await refreshUserToken();
-          return;
-        } else {
-          // No refresh token, clear everything
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("id_token");
-          localStorage.removeItem("refresh_token");
-          setIsAuthenticated(false);
-          setUser(null);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // Tokens are valid, extract user info
       const userInfo = getUserInfoFromToken(idToken);
       const groups = (await decodeJWT(idToken))["cognito:groups"] || [];
+
       setUser({
         id: userInfo.sub,
         email: userInfo.email,
@@ -118,15 +101,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAuthenticated(true);
       setIsLoading(false);
     } catch (error) {
-      // Clear tokens on error
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("id_token");
-      localStorage.removeItem("refresh_token");
-      setIsAuthenticated(false);
-      setUser(null);
-      setIsLoading(false);
+      console.error("Auth check failed:", error);
+      clearTokens();
     }
-  };
+  }, []);
 
   const signInWithSSO = () => {
     const oauthUrl = getCognitoOAuthUrl(
@@ -136,70 +114,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       "openid email profile"
     );
 
-    // Store current URL for redirect after login
     localStorage.setItem("redirect_after_login", window.location.pathname);
     window.location.href = oauthUrl;
   };
 
-  const refreshUserToken = async () => {
-    try {
-      const refreshToken = localStorage.getItem("refresh_token");
-      if (!refreshToken) {
-        throw new Error("No refresh token available");
-      }
-
-      const newTokens = await refreshTokens(
-        process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
-        process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
-        refreshToken
-      );
-
-      localStorage.setItem("access_token", newTokens.access_token);
-      localStorage.setItem("id_token", newTokens.id_token);
-
-      // Update user info from new ID token
-      const userInfo = getUserInfoFromToken(newTokens.id_token);
-      setUser({
-        id: userInfo.sub,
-        email: userInfo.email,
-        name: userInfo.name,
-        given_name: userInfo.given_name,
-        family_name: userInfo.family_name,
-        picture: userInfo.picture,
-      });
-
-      setIsAuthenticated(true);
-    } catch (error) {
-      await signOut();
-    }
-  };
-
   const signOut = async () => {
-    try {
-      const refreshToken = localStorage.getItem("refresh_token");
+    const refreshToken = localStorage.getItem("refresh_token");
 
-      if (refreshToken) {
-        try {
-          await revokeToken(
-            process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
-            process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
-            refreshToken
-          );
-        } catch (revokeError) {
-          // Token revocation failed, but continuing with sign out
-        }
+    if (refreshToken) {
+      try {
+        await revokeToken(
+          process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
+          process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
+          refreshToken
+        );
+      } catch (error) {
+        console.error("Token revocation failed:", error);
       }
-    } catch (error) {
-      // Unexpected error during sign out
-    } finally {
-      // Clear all tokens regardless of revocation success
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("id_token");
-      localStorage.removeItem("refresh_token");
-      setUser(null);
-      setIsAuthenticated(false);
     }
+
+    clearTokens();
   };
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   return (
     <AuthContext.Provider
@@ -209,7 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         signInWithSSO,
         signOut,
-        refreshUserToken,
       }}
     >
       {children}

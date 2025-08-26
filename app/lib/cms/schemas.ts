@@ -422,27 +422,31 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
           type: "object",
           label: "Image",
           fields: {
-            url: {
+            src: {
               type: "url",
               label: "Image URL",
               required: true,
               placeholder: "https://example.com/image.jpg",
+              defaultValue: "",
             },
             caption: {
               type: "text",
               label: "Caption (optional)",
               placeholder: "Beautiful outdoor setup",
+              defaultValue: "",
             },
             alt: {
               type: "text",
               label: "Alt Text",
               required: true,
               placeholder: "Outdoor picnic setup with flowers",
+              defaultValue: "",
             },
             category: {
               type: "select",
               label: "Category",
-              options: ["setup", "food", "decor", "guests", "venue", "other"],
+              options: ["villa", "outdoor", "luxury", "bubble", "proposal"],
+              defaultValue: "villa",
             },
           },
         },

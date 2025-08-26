@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { exchangeCodeForTokens, getUserInfoFromToken } from "ditwaru-aws-helpers";
+import { exchangeCodeForTokens } from "ditwaru-aws-helpers";
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -50,6 +50,7 @@ export default function AuthCallback() {
         // Redirect to intended page
         router.push(redirectUrl);
       } catch (error) {
+        console.error(error);
         setError("Failed to complete authentication");
       }
     };
