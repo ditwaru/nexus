@@ -8,16 +8,9 @@ import {
   revokeToken,
   getUserInfoFromToken,
   isTokenExpired,
+  decodeJWT,
 } from "ditwaru-aws-helpers";
-
-interface User {
-  id: string;
-  email?: string;
-  name?: string;
-  given_name?: string;
-  family_name?: string;
-  picture?: string;
-}
+import { User } from "@/app/lib/types";
 
 interface AuthContextType {
   user: User | null;
@@ -111,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Tokens are valid, extract user info
       const userInfo = getUserInfoFromToken(idToken);
+      const groups = (await decodeJWT(idToken))["cognito:groups"] || [];
       setUser({
         id: userInfo.sub,
         email: userInfo.email,
@@ -118,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         given_name: userInfo.given_name,
         family_name: userInfo.family_name,
         picture: userInfo.picture,
+        groups,
       });
 
       setIsAuthenticated(true);
