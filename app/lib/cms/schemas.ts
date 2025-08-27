@@ -454,6 +454,85 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     },
   },
 
+  projects: {
+    name: "Projects Portfolio",
+    description: "Showcase of featured projects and work",
+    fields: {
+      title: {
+        type: "text",
+        label: "Section Title",
+        required: true,
+        placeholder: "Featured Works",
+      },
+      projects: {
+        type: "array",
+        label: "Projects",
+        itemSchema: {
+          type: "object",
+          label: "Project",
+          fields: {
+            id: {
+              type: "text",
+              label: "Project ID",
+              required: true,
+              placeholder: "proj-001",
+              defaultValue: "",
+            },
+            title: {
+              type: "text",
+              label: "Project Title",
+              required: true,
+              placeholder: "Project Name",
+              defaultValue: "",
+            },
+            description: {
+              type: "textarea",
+              label: "Project Description",
+              required: true,
+              placeholder: "Describe your project...",
+              defaultValue: "",
+            },
+            category: {
+              type: "select",
+              label: "Project Category",
+              options: ["Web Application", "Mobile App", "Design", "Other"],
+              defaultValue: "Web Application",
+            },
+            image: {
+              type: "url",
+              label: "Project Image",
+              required: true,
+              placeholder: "https://example.com/project-image.jpg",
+              defaultValue: "",
+            },
+            link: {
+              type: "url",
+              label: "Project Link",
+              placeholder: "https://example.com/project",
+              defaultValue: "",
+            },
+            technologies: {
+              type: "array",
+              label: "Technologies Used",
+              itemSchema: {
+                type: "text",
+                label: "Technology",
+                placeholder: "Next.js",
+                defaultValue: "",
+              },
+            },
+            featured: {
+              type: "checkbox",
+              label: "Featured Project",
+              placeholder: "Mark as featured project",
+              defaultValue: false,
+            },
+          },
+        },
+      },
+    },
+  },
+
   events: {
     name: "Upcoming Events",
     description: "Showcase upcoming events and bookings",
