@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import VisitorModal from "./VisitorModal";
+import { usePathname } from "next/navigation";
 import {
   getCognitoOAuthUrl,
   refreshTokens,
@@ -24,6 +25,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("access_token");
     localStorage.removeItem("id_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("visitor_modal_shown");
     setIsAuthenticated(false);
     setUser(null);
     setIsLoading(false);
@@ -106,9 +109,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const isVisitorUser = groups.length === 1 && groups.includes("us-east-1_XjMDRhNhv_Google");
       setIsVisitor(isVisitorUser);
 
-      // Show visitor modal if this is a visitor
+      // Show visitor modal if this is a visitor and hasn't been shown yet
       if (isVisitorUser) {
-        setShowVisitorModal(true);
+        const modalAlreadyShown = localStorage.getItem("visitor_modal_shown");
+        if (!modalAlreadyShown) {
+          setShowVisitorModal(true);
+          localStorage.setItem("visitor_modal_shown", "true");
+        }
       }
 
       setIsAuthenticated(true);
@@ -151,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     checkAuthStatus();
-  }, [checkAuthStatus]);
+  }, [checkAuthStatus, pathname]);
 
   return (
     <AuthContext.Provider
