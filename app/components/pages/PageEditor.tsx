@@ -31,12 +31,12 @@ export default function PageEditor({ pageData, tableName }: PageEditorProps) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/content/${tableName}`, {
+      const response = await fetch(`/api/content`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(editingPage),
+        body: JSON.stringify({ tableName, ...editingPage }),
       });
 
       if (!response.ok) {
