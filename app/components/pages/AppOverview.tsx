@@ -7,9 +7,10 @@ import { Page } from "ditwaru-aws-helpers";
 interface AppOverviewProps {
   data: Page[];
   tableName?: string;
+  canEdit: boolean;
 }
 
-export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOverviewProps) {
+function AppOverview({ data, tableName = "daniel-itwaru", canEdit }: AppOverviewProps) {
   const [isAddingPage, setIsAddingPage] = useState(false);
   const [newPageName, setNewPageName] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -169,12 +170,14 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
                 </h1>
                 <p className="text-gray-600 mt-2">Manage your application pages</p>
               </div>
-              <button
-                onClick={() => setIsAddingPage(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                + Add Page
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => setIsAddingPage(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  + Add Page
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -245,44 +248,46 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
                     <span className="text-sm text-gray-500">
                       {page.sections?.length || 0} sections
                     </span>
-                    <button
-                      onClick={() => handleDeletePage(page.page || `page-${index}`)}
-                      disabled={isDeleting === (page.page || `page-${index}`)}
-                      className="text-red-600 hover:text-red-800 p-1 rounded transition-colors disabled:opacity-50"
-                      title="Delete page"
-                    >
-                      {isDeleting === (page.page || `page-${index}`) ? (
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
+                    {canEdit && (
+                      <button
+                        onClick={() => handleDeletePage(page.page || `page-${index}`)}
+                        disabled={isDeleting === (page.page || `page-${index}`)}
+                        className="text-red-600 hover:text-red-800 p-1 rounded transition-colors disabled:opacity-50"
+                        title="Delete page"
+                      >
+                        {isDeleting === (page.page || `page-${index}`) ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
                             stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      )}
-                    </button>
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -343,27 +348,29 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
                 </div>
 
                 {/* Edit Button */}
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <Link
-                    href={`/${tableName}/${page.page || `page-${index}`}`}
-                    className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                {canEdit && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <Link
+                      href={`/${tableName}/${page.page || `page-${index}`}`}
+                      className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    Edit Page Content
-                  </Link>
-                </div>
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                      Edit Page Content
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -377,15 +384,19 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
             <p className="text-gray-600 mb-6">
               Create your first page to start building your application.
             </p>
-            <button
-              onClick={() => setIsAddingPage(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              + Create First Page
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => setIsAddingPage(true)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                + Create First Page
+              </button>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }
+
+export default AppOverview;

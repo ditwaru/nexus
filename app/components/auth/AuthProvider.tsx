@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import VisitorModal from "./VisitorModal";
 import {
   getCognitoOAuthUrl,
   refreshTokens,
@@ -15,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isVisitor: boolean;
   signInWithSSO: () => void;
   signOut: () => void;
 }
@@ -25,6 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVisitor, setIsVisitor] = useState(false);
+  const [showVisitorModal, setShowVisitorModal] = useState(false);
 
   const clearTokens = () => {
     localStorage.removeItem("access_token");
@@ -98,6 +102,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         groups,
       });
 
+      // Check if user is a visitor (single group = google group)
+      const isVisitorUser = groups.length === 1 && groups.includes("us-east-1_XjMDRhNhv_Google");
+      setIsVisitor(isVisitorUser);
+
+      // Show visitor modal if this is a visitor
+      if (isVisitorUser) {
+        setShowVisitorModal(true);
+      }
+
       setIsAuthenticated(true);
       setIsLoading(false);
     } catch (error) {
@@ -146,11 +159,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated,
         isLoading,
+        isVisitor,
         signInWithSSO,
         signOut,
       }}
     >
       {children}
+      <VisitorModal isOpen={showVisitorModal} onClose={() => setShowVisitorModal(false)} />
     </AuthContext.Provider>
   );
 }

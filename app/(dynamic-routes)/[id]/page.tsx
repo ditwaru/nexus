@@ -1,5 +1,5 @@
 import { get } from "ditwaru-aws-helpers";
-import AppOverview from "../../components/pages/AppOverview";
+import AppOverviewWrapper from "../../components/pages/AppOverviewWrapper";
 import Navigation from "../../components/auth/Navigation";
 import ProtectedRoute from "../../components/auth/ProtectedRoute";
 
@@ -14,7 +14,7 @@ export default async function AppPage({ params }: { params: Promise<{ id: string
           <Navigation />
           <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <div className="px-4 py-6 sm:px-0">
-              <AppOverview data={pages} tableName={id} />
+              <AppOverviewWrapper data={pages} tableName={id} />
             </div>
           </main>
         </div>

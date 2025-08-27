@@ -6,6 +6,8 @@ import { Page, PageSection } from "ditwaru-aws-helpers";
 import { getSectionSchema } from "@/lib/cms/schemas";
 import DynamicSectionEditor from "@/components/cms/DynamicSectionEditor";
 import SectionTypeSelector from "@/components/cms/SectionTypeSelector";
+import { useAuth } from "../auth/AuthProvider";
+import ReadOnlyPage from "./ReadOnlyPage";
 
 interface PageEditorProps {
   pageData: Page;
@@ -19,11 +21,19 @@ interface ExtendedPageSection extends PageSection {
 }
 
 export default function PageEditor({ pageData, tableName }: PageEditorProps) {
+  const { isVisitor } = useAuth();
+
+  // All hooks must be called before any conditional returns
   const [editingPage, setEditingPage] = useState<Page>(pageData);
   const [originalPage] = useState<Page>(pageData); // Keep original for comparison
   const [isSaving, setIsSaving] = useState(false);
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
+
+  // If user is a visitor, show read-only version
+  if (isVisitor) {
+    return <ReadOnlyPage page={pageData} tableName={tableName} />;
+  }
 
   // Check if there are any changes
   const hasChanges = JSON.stringify(editingPage) !== JSON.stringify(originalPage);
