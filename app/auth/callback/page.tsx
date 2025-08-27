@@ -40,14 +40,9 @@ export default function AuthCallback() {
           localStorage.setItem("refresh_token", tokens.refresh_token);
         }
 
-        // Dispatch custom event to notify AuthProvider
-        window.dispatchEvent(new CustomEvent("auth-tokens-stored"));
-
-        // Get redirect URL
+        // Get redirect URL and redirect immediately
         const redirectUrl = localStorage.getItem("redirect_after_login") || "/";
         localStorage.removeItem("redirect_after_login");
-
-        // Redirect to intended page
         router.push(redirectUrl);
       } catch (error) {
         console.error(error);

@@ -59,7 +59,7 @@ export default function ArrayFieldRenderer({
         </button>
       </div>
 
-      <div className="space-y-2 max-h-60 overflow-y-auto">
+      <div className="space-y-2 max-h-screen overflow-y-auto">
         {items.map((item, index) => (
           <div key={index} className="flex gap-2 items-start">
             <div className="flex-1">
