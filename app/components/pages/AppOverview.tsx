@@ -165,7 +165,7 @@ export default function AppOverview({ data, tableName = "daniel-itwaru" }: AppOv
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 capitalize">
-                  {tableName.replace("-", " ")} - CMS
+                  {tableName.replace("-", " ")}
                 </h1>
                 <p className="text-gray-600 mt-2">Manage your application pages</p>
               </div>
