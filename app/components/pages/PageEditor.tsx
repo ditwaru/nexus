@@ -32,7 +32,7 @@ export default function PageEditor({ pageData, tableName, pageId }: PageEditorPr
 
   // Theme management - only for home pages
   const isHomePage = pageId === "home";
-  const [theme, setTheme] = useState<string>((pageData as any).theme || "summer");
+  const [theme, setTheme] = useState<string>(pageData.theme || "summer");
 
   // If user is a visitor, show read-only version
   if (isVisitor) {
@@ -42,7 +42,7 @@ export default function PageEditor({ pageData, tableName, pageId }: PageEditorPr
   // Check if there are any changes
   const hasChanges = isHomePage
     ? JSON.stringify({ ...editingPage, theme }) !==
-      JSON.stringify({ ...originalPage, theme: (originalPage as any).theme || "summer" })
+      JSON.stringify({ ...originalPage, theme: originalPage.theme || "summer" })
     : JSON.stringify(editingPage) !== JSON.stringify(originalPage);
 
   const handleSave = async () => {
