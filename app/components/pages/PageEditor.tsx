@@ -20,7 +20,7 @@ interface ExtendedPageSection extends PageSection {
   [key: string]: unknown;
 }
 
-export default function PageEditor({ pageData, tableName }: PageEditorProps) {
+export default function PageEditor({ pageData, tableName, pageId }: PageEditorProps) {
   const { isVisitor } = useAuth();
 
   // All hooks must be called before any conditional returns
@@ -30,23 +30,33 @@ export default function PageEditor({ pageData, tableName }: PageEditorProps) {
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
 
+  // Theme management - only for home pages
+  const isHomePage = pageId === "home";
+  const [theme, setTheme] = useState<string>((pageData as any).theme || "summer");
+
   // If user is a visitor, show read-only version
   if (isVisitor) {
     return <ReadOnlyPage page={pageData} tableName={tableName} />;
   }
 
   // Check if there are any changes
-  const hasChanges = JSON.stringify(editingPage) !== JSON.stringify(originalPage);
+  const hasChanges = isHomePage
+    ? JSON.stringify({ ...editingPage, theme }) !==
+      JSON.stringify({ ...originalPage, theme: (originalPage as any).theme || "summer" })
+    : JSON.stringify(editingPage) !== JSON.stringify(originalPage);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Include theme in page data if this is a home page
+      const pageDataToSave = isHomePage ? { ...editingPage, theme } : editingPage;
+
       const response = await fetch(`/api/content`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tableName, ...editingPage }),
+        body: JSON.stringify({ tableName, ...pageDataToSave }),
       });
 
       if (!response.ok) {
@@ -161,6 +171,24 @@ export default function PageEditor({ pageData, tableName }: PageEditorProps) {
                 Page ID cannot be changed as it&apos;s used as the database identifier
               </p>
             </div>
+            {isHomePage && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Theme</label>
+                <select
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md bg-white text-gray-900 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  <option value="summer">Summer</option>
+                  <option value="fall">Fall</option>
+                  <option value="winter">Winter</option>
+                  <option value="spring">Spring</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select a seasonal theme for this home page
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
